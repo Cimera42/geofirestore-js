@@ -98,8 +98,5 @@
   "directories": {
     "example": "examples",
     "test": "test"
-  },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
   }
 }
