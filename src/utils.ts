@@ -226,7 +226,11 @@ export function encodeGeoDocument(
 ): GeoFirestoreTypes.Document {
   validateLocation(location);
   validateGeohash(geohash);
-  return { g: geohash, l: location, d: document };
+  const splitGeohash = geohash.split('').reduce((acc, letter, index) => ({
+    ...acc,
+    [`g${index + 1}`]: letter
+  }), {});
+  return { g: geohash, ...splitGeohash, l: location, d: document };
 }
 
 /**
@@ -298,7 +302,7 @@ export function encodeUpdateDocument(data: GeoFirestoreTypes.UpdateData, customK
  * @param document A Firestore document.
  * @param customKey The key of the document to use as the location. Otherwise we default to `coordinates`.
  * @param flag Tells function supress errors.
- * @return The GeoPoint for the location field of a document. 
+ * @return The GeoPoint for the location field of a document.
  */
 export function findCoordinates(
   document: GeoFirestoreTypes.DocumentData, customKey?: string, flag = false
@@ -479,7 +483,7 @@ export function toGeoPoint(latitude: number, longitude: number): GeoFirestoreTyp
  *
  * @param data The GeoDocument object to be validated.
  * @param flag Tells function to send up boolean if valid instead of throwing an error.
- * @return Flag if data is valid 
+ * @return Flag if data is valid
  */
 export function validateGeoDocument(data: GeoFirestoreTypes.Document, flag = false): boolean {
   let error: string;

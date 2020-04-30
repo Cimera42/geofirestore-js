@@ -1,9 +1,10 @@
 {
-  "name": "geofirestore",
+  "name": "@jaaam-io/geofirestore",
   "description": "Location-based querying and filtering using Firebase's Firestore",
   "version": "3.4.1",
   "scripts": {
     "build": "rm -rf ./dist && rollup -c",
+    "build:windows": "(rmdir dist /Q /S || echo 1) && rollup -c",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "docs": "typedoc --module node --target es5 --out docs/ src/",
     "lint": "gts check",
@@ -24,12 +25,11 @@
   "homepage": "https://geofirestore.com/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/geofirestore/geofirestore-js.git"
+    "url": "https://github.com/jaaam-io/geofirestore-js"
   },
   "bugs": {
-    "url": "https://github.com/geofirestore/geofirestore-js/issues"
+    "url": "https://github.com/jaaam-io/geofirestore-js/issues"
   },
-  "readme": "README.md",
   "license": "MIT",
   "keywords": [
     "geoquery",
@@ -89,5 +89,14 @@
       "html"
     ],
     "all": true
+  },
+  "dependencies": {
+    "@google-cloud/firestore": ">= 2.0.0",
+    "@types/node": ">= 8.0.0",
+    "firebase": ">= 6.0.0"
+  },
+  "directories": {
+    "example": "examples",
+    "test": "test"
   }
 }

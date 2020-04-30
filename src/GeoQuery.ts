@@ -93,6 +93,31 @@ export class GeoQuery {
     }
   }
 
+  getWithCustomQueries(
+    customiseQueries: (q: [string, GeoFirestoreTypes.web.Query][]) => [string, GeoFirestoreTypes.web.Query][],
+    options: GeoFirestoreTypes.web.GetOptions = { source: 'default' }
+  ): Promise<[string, GeoQuerySnapshot][]> {
+    if (this._center && typeof this._radius !== 'undefined') {
+      const hashWithQueries = this._generateQueryWithGeohashes();
+
+      // Modify queries using function parameter
+      const customisedQueries = customiseQueries ? customiseQueries(hashWithQueries) : hashWithQueries;
+      const queries = customisedQueries.map(([hash, query]) => this._isWeb ? query.get(options) : query.get());
+
+      return Promise.all(queries)
+        .then(snapshots =>
+          snapshots.map((snapshot, index) =>
+            [
+              customisedQueries[index][0],
+              new GeoQuerySnapshot(snapshot)
+            ]));
+    } else {
+      const query = this._limit ? this._query.limit(this._limit) : this._query;
+      const promise = this._isWeb ? (query as GeoFirestoreTypes.web.Query).get(options) : (query as GeoFirestoreTypes.web.Query).get();
+      return promise.then((snapshot) => [[null, new GeoQuerySnapshot(snapshot)]]);
+    }
+  }
+
   /**
    * Creates and returns a new GeoQuery that's additionally limited to only return up to the specified number of documents.
    *
@@ -145,6 +170,36 @@ export class GeoQuery {
     value: any
   ): GeoQuery {
     return new GeoQuery(this._query.where((fieldPath ? ('d.' + fieldPath) : fieldPath), opStr, value), this._queryCriteria);
+  }
+
+  /**
+   * Creates an array of geohash strings and `Query` objects that query the appropriate geohashes
+   * based on the radius and center GeoPoint of the query criteria.
+   *
+   * @return Array of [geohash, Queries] to search against.
+   */
+  private _generateQueryWithGeohashes(): [string, GeoFirestoreTypes.web.Query][] {
+    // Get the list of geohashes to query
+    let geohashesToQuery: string[] = geohashQueries(this._center, this._radius * 1000).map(this._queryToString);
+    // Generalise geohashes up one level
+    geohashesToQuery = geohashesToQuery.map(hashPair => {
+      const split = hashPair.split(':');
+      return split[0].slice(0, split[0].length - 1);
+    })
+    // Filter out duplicate geohashes
+    geohashesToQuery = geohashesToQuery.filter((geohash: string, i: number) => geohashesToQuery.indexOf(geohash) === i);
+
+    return geohashesToQuery.map((toQueryStr: string) => {
+      // Create the Firebase query
+      let query = this._query;
+      for(let i = 0; i < toQueryStr.length; i++) {
+        query = query.where(`g${i+1}`, '==', toQueryStr[i]);
+      }
+      return [
+        toQueryStr,
+        query as GeoFirestoreTypes.web.Query
+      ];
+    });
   }
 
   /**
