@@ -3,8 +3,8 @@
   "description": "Location-based querying and filtering using Firebase's Firestore",
   "version": "3.4.1",
   "scripts": {
-    "build": "rm -rf ./dist && rollup -c",
-    "build:windows": "(rmdir dist /Q /S || echo 1) && rollup -c",
+    "build": "(rmdir dist /Q /S || echo 1) && rollup -c",
+    "build:bash": "rm -rf ./dist && rollup -c",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "docs": "typedoc --module node --target es5 --out docs/ src/",
     "lint": "gts check",
@@ -98,5 +98,8 @@
   "directories": {
     "example": "examples",
     "test": "test"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
   }
 }
